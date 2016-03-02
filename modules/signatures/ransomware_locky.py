@@ -39,23 +39,27 @@ class RansomwareLocky(Signature):
         self.cryptedbody = []
         self.httpcnc = False
         self.cncs = []
+        self.process = []
      
     filter_apinames = set(["CryptHashData","InternetCrackUrlA"])
 
     def on_call(self, call, process):
 
         # Checking for and extracting C2 details
+        pname = process["process_name"].lower()
         if call["api"] == "CryptHashData":
             cryptbody = re.compile("^id=[A-F0-9]{16}&act=(getkey|gettext|stats).*")
             buf = self.get_argument(call, "Buffer")
             if cryptbody.match(buf):
                 if self.cryptedbody.count(buf) == 0:
                     self.cryptedbody.append(buf)
+                if self.process.count(pname) == 0:
+                    self.process.append(pname)
                 self.cryptohttp = True
 
         if call["api"] == "InternetCrackUrlA":
             buf = self.get_argument(call, "Url")
-            if "/main.php" in buf:
+            if "/main.php" in buf and pname in self.process:
                 if self.cncs.count(buf) == 0:
                     self.cncs.append(buf)
                 self.httpcnc = True
@@ -63,7 +67,7 @@ class RansomwareLocky(Signature):
     def on_complete(self):
         ret = False
 
-        keys = [".*\\\\\Software\\\\(Wow6432Node\\\\)?Locky$"]
+        keys = [".*\\\\\Software\\\\(Wow6432Node\\\\)?Locky$",".*\\\\\Software\\\\(Wow6432Node\\\\)?Locky\\\\id$",".*\\\\\Software\\\\(Wow6432Node\\\\)?Locky\\\\pubkey$",".*\\\\\Software\\\\(Wow6432Node\\\\)?Locky\\\\paytext$"]
         extensions = [".*\.locky$"]
 
         for key in keys:
