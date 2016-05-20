@@ -22,7 +22,7 @@ class NetworkC2Details(Signature):
     confidence = 20
     categories = ["infostealer","c2","network"]
     authors = ["Kevin Ross"]
-    minimum = "1.3"
+    minimum = "1.2"
     evented = True
 
     def __init__(self, *args, **kwargs):
@@ -50,41 +50,36 @@ class NetworkC2Details(Signature):
             buff = self.get_argument(call, "Buffer")
             for compdetails in self.computerdetails:
                 if compdetails in buff:
-                    if self.computerdetails.count(buff) == 0:
-                        self.data.append({"C2_Preperation_CryptoHashData": buff})
-                        self.cnc = True
+                    self.data.append({"C2_Preperation_CryptoHashData": buff})
+                    self.cnc = True
 
         elif api == "HttpSendRequestW":
             buff = self.get_argument(call, "PostData")
             for compdetails in self.computerdetails:
                 if compdetails in buff:
-                    if self.computerdetails.count(buff) == 0:
-                        self.data.append({"C2_HttpSendRequestW": buff})
-                        self.cnc = True
+                    self.data.append({"C2_HttpSendRequestW": buff})
+                    self.cnc = True
 
         elif api == "HttpOpenRequestW":
             buff = self.get_argument(call, "Path")
             for compdetails in self.computerdetails:
                 if compdetails in buff:
-                    if self.computerdetails.count(buff) == 0:
-                        self.data.append({"C2_HttpOpenRequestW": buff})
-                        self.cnc = True
+                    self.data.append({"C2_HttpOpenRequestW": buff})
+                    self.cnc = True
 
         elif api == "InternetCrackUrlW":
             buff = self.get_argument(call, "Url")
             for compdetails in self.computerdetails:
                 if compdetails in buff:
-                    if self.computerdetails.count(buff) == 0:
-                        self.data.append({"C2_InternetCrackUrlW": buff})
-                        self.cnc = True
+                    self.data.append({"C2_InternetCrackUrlW": buff})
+                    self.cnc = True
 
         elif api == "WSASend":
             buff = self.get_argument(call, "Buffer")
             for compdetails in self.computerdetails:
                 if compdetails in buff:
-                    if self.computerdetails.count(buff) == 0:
-                        self.data.append({"C2_WSASend": buff})
-                        self.cnc = True
+                    self.data.append({"C2_WSASend": buff})
+                    self.cnc = True
 
     def on_complete(self):
         if self.cnc:
