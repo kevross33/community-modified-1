@@ -17,34 +17,58 @@ from lib.cuckoo.common.abstracts import Signature
 
 class Recon_Beacon(Signature):
     name = "recon_beacon"
-    description = "A process sent information about the computer to a remote location."
+    description = "A process performed obfuscation on information about the computer or sent it to a remote location indicative of CnC Traffic/Preperations."
     weight = 2
     severity = 3
     categories = ["network", "recon"]
-    authors = ["KillerInstinct"]
+    authors = ["KillerInstinct", "Kevin Ross"]
     minimum = "1.3"
     evented = True
 
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
         self.proclogs = dict()
+        self.proclogs_obf = dict()
 
-    filter_apinames = set(["HttpSendRequestA", "HttpOpenRequestA"])
+    filter_apinames = set(["HttpSendRequestA","HttpSendRequestW","HttpOpenRequestA","HttpOpenRequestW","InternetCrackUrlA","InternetCrackUrlW","WSASend","CryptHashData"])
 
     def on_call(self, call, process):
-        if call["api"] == "HttpSendRequestA":
+        # Checks for sending data over network
+        if call["api"] == "HttpSendRequestA" or call["api"] == "HttpSendRequestW":
             buf = self.get_argument(call, "PostData")
             if buf:
                 if process["process_name"] not in self.proclogs:
                     self.proclogs[process["process_name"]] = set()
                 self.proclogs[process["process_name"]].add(buf)
 
-        elif call["api"] == "HttpOpenRequestA":
+        elif call["api"] == "HttpOpenRequestA" or call["api"] == "HttpOpenRequestW":
             buf = self.get_argument(call, "Path")
             if buf:
                 if process["process_name"] not in self.proclogs:
                     self.proclogs[process["process_name"]] = set()
                 self.proclogs[process["process_name"]].add(buf)
+
+        elif call["api"] == "InternetCrackUrlA" or call["api"] == "InternetCrackUrlW":
+            buf = self.get_argument(call, "Url")
+            if buf:
+                if process["process_name"] not in self.proclogs:
+                    self.proclogs[process["process_name"]] = set()
+                self.proclogs[process["process_name"]].add(buf)
+
+        elif call["api"] == "WSASend":
+            buf = self.get_argument(call, "Buffer")
+            if buf:
+                if process["process_name"] not in self.proclogs:
+                    self.proclogs[process["process_name"]] = set()
+                self.proclogs[process["process_name"]].add(buf)
+
+        # Data preperation likely prior to sending over network in obfsucated form
+        elif call["api"] == "CryptHashData":
+            buf = self.get_argument(call, "Buffer")
+            if buf:
+                if process["process_name"] not in self.proclogs_obf:
+                    self.proclogs_obf[process["process_name"]] = set()
+                self.proclogs_obf[process["process_name"]].add(buf)
 
     def on_complete(self):
         ret = False
@@ -62,6 +86,13 @@ class Recon_Beacon(Signature):
                 for beacon in self.proclogs[proc]:
                     if cname in beacon.lower() or uname in beacon.lower():
                         self.data.append({"Beacon": proc + ": " + beacon})
+                        ret = True
+
+        if self.proclogs_obf and cname and uname:
+            for proc in self.proclogs_obf:
+                for beacon in self.proclogs_obf[proc]:
+                    if cname in beacon.lower() or uname in beacon.lower():
+                        self.data.append({"Data Being Obfuscated": proc + ": " + beacon})
                         ret = True
 
         return ret
