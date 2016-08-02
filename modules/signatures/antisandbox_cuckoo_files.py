@@ -28,7 +28,7 @@ class CuckooDetectFiles(Signature):
             ".*\\\\agent\.pyw$",
             ".*\\\\agent\.py$",
             "C:\\\\cuckoo\\\\dll$",
-            "\\\\pipe\\\\cuckoo"
+            ".*\\\\pipe\\\\cuckoo"
         ]
 
         for indicator in indicators:
