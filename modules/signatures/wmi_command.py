@@ -17,7 +17,7 @@ from lib.cuckoo.common.abstracts import Signature
 
 class WMICommand(Signature):
     name = "wmi_command"
-    description = "Suspicious use of a WMI command"
+    description = "Use of a WMI command"
     severity = 2
     confidence = 70
     weight = 0
@@ -30,33 +30,46 @@ class WMICommand(Signature):
         Signature.__init__(self, *args, **kwargs)
         self.disksize = False
         self.cpucores = False
+        self.wmiccmds = []
 
     filter_apinames = set(["CreateProcessInternalW","ShellExecuteExW"])
 
     def on_call(self, call, process):
         if call["api"] == "CreateProcessInternalW":
             cmdline = self.get_argument(call, "CommandLine").lower()
+            if cmdline == "":
+                cmdline = self.get_argument(call, "ApplicationName").lower()
         else:
             filepath = self.get_argument(call, "FilePath").lower()
             params = self.get_argument(call, "Parameters").lower()
             cmdline = filepath + " " + params
 
+        if "wmic" in cmdline:
+            self.wmiccmds.append(cmdline)
+
         if "wmic" in cmdline and "logicaldisk" in cmdline and "get size" in cmdline:
             self.disksize = True
 
         if "wmic" in cmdline and "cpu" in cmdline and "numberofcores" in cmdline:
-            self.cpucores = True
+            self.cpucores = True        
 
     def on_complete(self):
         if self.disksize:
             self.data.append({"checks_disksize" : "Checks disk size potentially to detect sandbox"})
+            self.description = "Suspicious use of a WMI command"
             self.severity = 3
             self.weight += 1
 
         if self.cpucores:
             self.data.append({"checks_cpu_cores" : "Checks for number of CPU cores potentially to detect sandbox"})
+            self.description = "Suspicious use of a WMI command"
             self.severity = 3
             self.weight += 1
+
+        if len(self.wmiccmds) > 0:
+            for cmdline in self.wmiccmds:
+                self.weight += 1
+                self.data.append({"wmic_command" : cmdline})
 
         if self.weight:
             return True
