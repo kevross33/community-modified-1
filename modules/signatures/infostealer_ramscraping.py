@@ -27,16 +27,39 @@ class InfoStealerRamScraping(Signature):
     def __init__(self, *args, **kwargs):
         Signature.__init__(self, *args, **kwargs)
         self.readcount = 0
+        self.readprocs = dict()
+        self.lastpid = ""
+        self.lasthandle = ""
+        self.lastprocess = ""
 
-    filter_apinames = set(["ReadProcessMemory"])
+    filter_apinames = set(["Process32NextW", "NtOpenProcess", "ReadProcessMemory"])
 
     def on_call(self, call, process):
-        handle = self.get_argument(call, "ProcessHandle")
-        if handle != "0xffffffff" and handle != "0x00000000":
-            self.readcount += 1
+        if call["api"] == "Process32NextW":
+            pid = self.get_argument(call, "ProcessId")
+            pname = self.get_argument(call, "ProcessName")
+            self.lastpid = pid
+            self.lastprocess = pname
+
+        if call["api"] == "NtOpenProcess" and self.lastprocess != "" and self.lastpid != "":
+            pid = self.get_argument(call, "ProcessIdentifier")
+            handle = self.get_argument(call, "ProcessHandle")
+            if pid == self.lastpid:
+                self.lasthandle = handle       
+
+        elif call["api"] == "ReadProcessMemory" and self.lasthandle != "":
+            handle = self.get_argument(call, "ProcessHandle")
+            buf = self.get_argument(call, "Buffer")
+            if handle != "0xffffffff" and handle == self.lasthandle and len(buf) > 0:
+                pname = self.lastprocess
+                if pname not in self.readprocs:
+                    self.readprocs[pname] = 0
+                self.readprocs[pname] += 1 
 
     def on_complete(self):
-        if self.readcount > 50:
-            return True
+        for pname, total in self.readprocs.items():
+            if total > 50:
+                self.data.append({"scraped_process": pname})
+                return True
 
         return False
