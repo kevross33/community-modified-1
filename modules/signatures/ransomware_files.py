@@ -59,6 +59,7 @@ class RansomwareFiles(Signature):
             (".*\\\\!satana!.txt$", ["Satana"]),
             (".*\\\\HOW_TO_UNLOCK_FILES_README_\([0-9a-f]+\)\.(txt|html|bmp)$", ["WildFire"]),
             (".*\\\\HELP_DECRYPT_YOUR_FILES\.(html|txt)$", ["CryptFile2"]),
+            (".*\\\\__HELP_instructions\.(bmp|html)$", ["Locky"]),
         ]
 
         for ioc in file_list:
