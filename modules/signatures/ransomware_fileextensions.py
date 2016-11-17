@@ -66,6 +66,7 @@ class RansomwareExtensions(Signature):
             (".*\.rnsmwr$", ["Gremit"]),
             (".*\.da_vinci_code$", ["Troldesh"]),
             (".*\.magic_software_syndicate$", ["Troldesh"]),
+            (".*luck$", ["CryptoLuck"]),
         ]
 
         for indicator in indicators:
