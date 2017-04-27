@@ -17,7 +17,7 @@ from lib.cuckoo.common.abstracts import Signature
 
 class Emotet_APIs(Signature):
     name = "emotet_behavior"
-    description = "Exhibits behavior characteristic of Emotet/Geodo Malware"
+    description = "Exhibits behavior characteristic of Emotet/Geodo malware"
     weight = 3
     severity = 3
     categories = ["infostealer"]
