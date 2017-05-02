@@ -78,6 +78,7 @@ class RansomwareExtensions(Signature):
             (".*\.sexy$", ["PayDay"]),
             (".*\.kraken$", ["Kraken"]),
             (".*\.lesli$", ["CryptoMix"]),
+            (".*\.WALLET$", ["CryptoMix"]),
             (".*\.sage$", ["Sage"]),
             (".*\.CRYPTOSHIELD$", ["CryptoShield"]),
             (".*\.serpent$", ["Serpent"]),
@@ -85,6 +86,7 @@ class RansomwareExtensions(Signature):
             (".*\.MOLE$", ["Mole"]),
             (".*\.onion$", ["Dharma"]),
             (".*\.grt$", ["Karmen"]),
+            (".*\.mordor$", ["Mordor"]),
         ]
 
         for indicator in indicators:
