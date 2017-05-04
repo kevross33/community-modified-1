@@ -70,7 +70,6 @@ class Emotet_APIs(Signature):
 
         elif call["api"] == "InternetConnectW" and self.emotet:
             ip = self.get_argument(call, "ServerName")
-            port = self.get_argument(call, "ServerPort")
             if ip not in self.c2:
                 self.ip = ip
                 self.lasthandle = call["return"]
