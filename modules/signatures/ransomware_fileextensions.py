@@ -87,6 +87,7 @@ class RansomwareExtensions(Signature):
             (".*\.onion$", ["Dharma"]),
             (".*\.grt$", ["Karmen"]),
             (".*\.mordor$", ["Mordor"]),
+            (".*\.jaff$", ["Jaff"]),
         ]
 
         for indicator in indicators:
